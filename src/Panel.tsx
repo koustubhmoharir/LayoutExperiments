@@ -19,6 +19,7 @@ interface PanelProps {
     | "between-items"
     | "around-items";
   alignItems?: PanelItemAlignment;
+  background?: string;
 }
 
 interface PanelItemProps {
@@ -30,11 +31,13 @@ interface PanelItemProps {
   width?: number;
   scrollHorizontally?: boolean;
   scrollVertically?: boolean;
+  background?: string;
 }
 
 interface PanelSplitterProps {
   size?: number;
   resize?: "auto" | "previous" | "next";
+  background?: string;
 }
 
 type PanelChildElement = React.ReactElement<
@@ -78,6 +81,7 @@ export function Panel(props: PanelProps) {
   let alignItems =
     props.alignItems || (props.direction === "vertical" ? "stretch" : "center");
   let padding = paddingToRem(props.padding);
+  let background = props.background;
   return (
     <ParentPanelContext.Provider
       value={{
@@ -94,7 +98,8 @@ export function Panel(props: PanelProps) {
           flexDirection,
           justifyContent,
           alignItems,
-          padding
+          padding,
+          background
         }}
       >
         {createPanelChildren(
@@ -136,6 +141,7 @@ function createPanelChildren(
       if (addSpacer && spacingBetweenItems > 0) {
         actual.push(
           <div
+            key={"spacer-" + index}
             style={{
               flexShrink: 0,
               alignSelf: "stretch",
@@ -161,36 +167,43 @@ export function PanelSplitter(props: PanelSplitterProps) {
   let direction = context.direction;
   let resize = props.resize;
   let drag = React.useCallback(
-    (horz: number, vert: number) => {
+    (horz?: number, vert?: number) => {
       let delta = direction === "vertical" ? vert : horz;
+      let revDelta = delta == null ? null : -delta;
       let auto = false;
       if (itemProps[index - 1].fill === 0) {
         setItemSize[index - 1](delta);
         auto = true;
       }
       if (itemProps[index + 1].fill === 0) {
-        setItemSize[index + 1](-delta);
+        setItemSize[index + 1](revDelta);
         auto = true;
       }
       if (!auto) {
-        if (resize === "next") setItemSize[index + 1](-delta);
+        if (resize === "next") setItemSize[index + 1](revDelta);
         else setItemSize[index - 1](delta);
       }
     },
     [direction, index, itemProps, setItemSize, resize]
   );
+  function onDoubleClick() {
+    drag();
+  }
   useDragHandler(divRef, drag);
   let size = Math.max(context.spacingBetweenItems, props.size || 0.25);
   let sizeStr = `${size}rem`;
+  let background = props.background;
   return (
     <div
       ref={divRef}
+      onDoubleClick={onDoubleClick}
       style={{
         alignSelf: "stretch",
         flexShrink: 0,
         cursor: direction === "horizontal" ? "col-resize" : "row-resize",
         ...(direction === "horizontal" && { width: sizeStr }),
-        ...(direction === "vertical" && { height: sizeStr })
+        ...(direction === "vertical" && { height: sizeStr }),
+        background
       }}
     />
   );
@@ -208,7 +221,6 @@ export function PanelItem(props: PanelItemProps) {
     else if (divRef.current) {
       let rect = divRef.current.getBoundingClientRect();
       let size = isVertical ? rect.bottom - rect.top : rect.right - rect.left;
-      console.log(size + delta);
       setExplSize(size + delta);
     }
   };
@@ -245,6 +257,8 @@ export function PanelItem(props: PanelItemProps) {
     props.scrollVertically == null
       ? isVertical && props.fill > 0
       : props.scrollVertically;
+
+  let background = props.background;
   return (
     <div
       ref={divRef}
@@ -257,7 +271,8 @@ export function PanelItem(props: PanelItemProps) {
         [sizeProp]: size,
         [crossSizeProp]: crossSize,
         overflowX: scrollHorizontally ? "auto" : "hidden",
-        overflowY: scrollVertically ? "auto" : "hidden"
+        overflowY: scrollVertically ? "auto" : "hidden",
+        background
       }}
       className={className}
     >

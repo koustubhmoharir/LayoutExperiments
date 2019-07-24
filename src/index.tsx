@@ -22,6 +22,17 @@ function App() {
             <PanelItem>btn 4</PanelItem>
           </Panel>
         </PanelItem>
+        <PanelItem>
+          <Panel direction="horizontal" spacingBetweenItems={1}>
+            <PanelItem>
+              text line 1<br />
+              text line 2
+            </PanelItem>
+            <PanelItem>single line</PanelItem>
+            <PanelItem fill={1} />
+            <PanelItem align="stretch" width={3} background="blue" />
+          </Panel>
+        </PanelItem>
         <PanelItem fill={1}>
           <Panel
             direction="horizontal"
@@ -34,7 +45,7 @@ function App() {
                 <PanelItem align="start" padding={[0.5, 1]}>
                   Header
                 </PanelItem>
-                <PanelSplitter />
+                <PanelSplitter background="lightgray" />
                 <PanelItem fill={1} scrollVertically={false}>
                   {Array.from({ length: 100 }).map((_, i) => (
                     <div>{"content line with some long text " + (i + 1)}</div>
