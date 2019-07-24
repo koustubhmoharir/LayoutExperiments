@@ -6,8 +6,28 @@ import { useDragHandler } from "./Draggable";
 type PanelDirection = "vertical" | "horizontal";
 type PanelItemAlignment = "start" | "end" | "center" | "stretch";
 type Thickness = number | [number, number] | [number, number, number, number];
+type BorderStyle =
+  | "none"
+  | "hidden"
+  | "dotted"
+  | "dashed"
+  | "solid"
+  | "double"
+  | "groove"
+  | "ridge"
+  | "inset"
+  | "outset";
 
-interface PanelProps {
+interface BorderProps {
+  borderColor?: string | [string, string] | [string, string, string, string];
+  border?: Thickness;
+  borderStyle?:
+    | BorderStyle
+    | [BorderStyle, BorderStyle]
+    | [BorderStyle, BorderStyle, BorderStyle, BorderStyle];
+}
+
+interface PanelProps extends BorderProps {
   direction: PanelDirection;
   children?: React.ReactElement<PanelItemProps> | PanelChildElement[];
   padding?: Thickness;
@@ -22,7 +42,7 @@ interface PanelProps {
   background?: string;
 }
 
-interface PanelItemProps {
+interface PanelItemProps extends BorderProps {
   fill?: number;
   children?: React.ReactNode;
   align?: PanelItemAlignment;
@@ -80,7 +100,7 @@ export function Panel(props: PanelProps) {
       : "flex-end";
   let alignItems =
     props.alignItems || (props.direction === "vertical" ? "stretch" : "center");
-  let padding = paddingToRem(props.padding);
+  let padding = v124ToString(props.padding, "rem");
   let background = props.background;
   return (
     <ParentPanelContext.Provider
@@ -99,7 +119,8 @@ export function Panel(props: PanelProps) {
           justifyContent,
           alignItems,
           padding,
-          background
+          background,
+          ...borderPropsToStyle(props)
         }}
       >
         {createPanelChildren(
@@ -111,18 +132,46 @@ export function Panel(props: PanelProps) {
     </ParentPanelContext.Provider>
   );
 }
-function paddingToRem(p: Thickness) {
+function v124ToString<T>(p: T | [T, T] | [T, T, T] | [T, T, T, T], units = "") {
   let paddingStr: string | undefined;
-  if (_.isNumber(p)) {
-    paddingStr = `${p}rem`;
-  } else if (_.isArray(p)) {
+  if (_.isArray(p)) {
     if (p.length === 2) {
-      paddingStr = `${p[0]}rem ${p[1]}rem`;
+      paddingStr = `${p[0]}${units} ${p[1]}${units}`;
+    } else if (p.length === 3) {
+      paddingStr = `${p[0]}${units} ${p[1]}${units} ${p[2]}${units} ${
+        p[1]
+      }${units}`;
     } else if (p.length === 4) {
-      paddingStr = `${p[0]}rem ${p[1]}rem ${p[2]}rem ${p[3]}rem`;
+      paddingStr = `${p[0]}${units} ${p[1]}${units} ${p[2]}${units} ${
+        p[3]
+      }${units}`;
     }
-  }
+  } else paddingStr = `${p}${units}`;
   return paddingStr;
+}
+
+function borderPropsToStyle(props: BorderProps) {
+  if (
+    props.border == null &&
+    props.borderColor == null &&
+    props.borderStyle == null
+  )
+    return undefined;
+  let bt = props.border == null ? 1 : props.border;
+  let bs = props.borderStyle == null ? "solid" : props.borderStyle;
+  let bc = props.borderColor == null ? "gray" : props.borderColor;
+  if (
+    !_.isArray(props.border) &&
+    !_.isArray(props.borderColor) &&
+    !_.isArray(props.borderStyle)
+  ) {
+    return { border: `${bt}px ${bs} ${bc}` };
+  }
+  return {
+    borderWidth: v124ToString(bt, "px"),
+    borderStyle: v124ToString(bs),
+    borderColor: v124ToString(bc)
+  };
 }
 
 function createPanelChildren(
@@ -243,12 +292,12 @@ export function PanelItem(props: PanelItemProps) {
       : props.align === "end"
       ? "flex-end"
       : props.align;
-  let padding = paddingToRem(props.padding);
+  let padding = v124ToString(props.padding, "rem");
   let className =
     (isVertical && props.fill > 0) ||
     (!isVertical && (alignSelf || context.alignItems) === "stretch")
       ? "stretch-vertical"
-      : "";
+      : undefined;
   let scrollHorizontally =
     props.scrollHorizontally == null
       ? !isVertical && props.fill > 0
@@ -272,7 +321,8 @@ export function PanelItem(props: PanelItemProps) {
         [crossSizeProp]: crossSize,
         overflowX: scrollHorizontally ? "auto" : "hidden",
         overflowY: scrollVertically ? "auto" : "hidden",
-        background
+        background,
+        ...borderPropsToStyle(props)
       }}
       className={className}
     >

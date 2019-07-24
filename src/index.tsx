@@ -15,6 +15,9 @@ function App() {
             leftOverSpace="start"
             padding={[0.25, 1]}
             spacingBetweenItems={1}
+            border={[0, 0, 2, 0]}
+            borderStyle="dashed"
+            borderColor="red"
           >
             <PanelItem>btn 1</PanelItem>
             <PanelItem>btn 2</PanelItem>
