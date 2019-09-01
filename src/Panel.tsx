@@ -100,6 +100,12 @@ export function Panel(props: PanelProps) {
       : "flex-end";
   let alignItems =
     props.alignItems || (props.direction === "vertical" ? "stretch" : "center");
+  let flexAlignItems =
+    alignItems === "start"
+      ? "flex-start"
+      : alignItems === "end"
+        ? "flex-end"
+        : alignItems;
   let padding = v124ToString(props.padding, "rem");
   let background = props.background;
   return (
@@ -117,7 +123,7 @@ export function Panel(props: PanelProps) {
           display: "flex",
           flexDirection,
           justifyContent,
-          alignItems,
+          alignItems: flexAlignItems,
           padding,
           background,
           ...borderPropsToStyle(props)

@@ -49,7 +49,7 @@ function App() {
                   Header
                 </PanelItem>
                 <PanelSplitter background="lightgray" />
-                <PanelItem fill={1} scrollVertically={false}>
+                <PanelItem fill={1}>
                   {Array.from({ length: 100 }).map((_, i) => (
                     <div>{"content line with some long text " + (i + 1)}</div>
                   ))}
